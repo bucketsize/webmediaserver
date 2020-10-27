@@ -1,45 +1,33 @@
 --[[
-export LUA_PATH='/home/jb/.luarocks/share/lua/5.3/?.lua;/home/jb/lib/?.lua'
-export LUA_CPATH='/home/jb/.luarocks/lib/lua/5.3/?.so'
+	eval $(luarocks path --bin)
 --]]
 
-local Util = require('util')
+--------------------------------
+--   Additional lua paths     --
+local HOME = os.getenv ('HOME')
+package.path = package.path ..';'
+	..HOME..'/lib/?.lua;'
+	..'?.lua'
+print(package.path)
+print(package.cpath)
+--------------------------------
 
+local Util = require('util')
 local restserver = require("restserver")
-local lfs = require"lfs"
+local lfs = require('lfs')
 
 local server = restserver:new():port(8083)
 local hls_url = 'http://fuhrer-fu:8081/hls'
 local media_base_path = '/mnt/f1aa/var/webmedia/root/'
 
-
-function file_exists(file)
-	local h = io.open(file, "r")
-	if h == nil then
-		return false
-	end
-	h:close()
-	return true
-end
-function exec(cmd)
-	local h = io.popen(cmd)
-	local r
-	if h == nil then
-		r = ""
-	else
-		r = h:read("*a")
-		h:close()
-	end
-	return r
-end
 function gen_thumbnail(file)
 	print('gen_thumbnail: '..file)
 	local thm = file..'.png'
-	if file_exists(thm) then
+	if Util:file_exists(thm) then
 		return
 	end
 	local cmd = string.format('ffmpegthumbnailer -mf -i %s -o %s', file, thm)
-	exec(cmd)
+	Util:exec(cmd)
 end
 local _M = {
 	fs = {},
@@ -140,7 +128,7 @@ server:add_resource("playlist", {
 					table.insert(playl, {
 							url = string.format('%s/%s', hls_url, f),
 							image = string.format('%s/%s.png', hls_url, f),
-							name = string.match(f, '/([%a%d%s+=-_\\.\\]*)$')
+							name = string.match(f, Util.FILENAME_PAT)
 						})
 				end
 
@@ -195,8 +183,12 @@ server:set_error_handler({
 		end,
 	})
 
-server.server_name = "webmedia-dsc"
+server.server_name = "webmediaserver"
+server:enable("restserver.xavante"):start()
 
+-----------
+-- TESTS --
+-----------
 function test_list_files()
 	print('-- page', 1)
 	Util:printTable(list_files())
@@ -213,4 +205,3 @@ end
 
 -- test_list_files()
 
-server:enable("restserver.xavante"):start()

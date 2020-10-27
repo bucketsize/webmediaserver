@@ -41,7 +41,7 @@
               .replace('__vid', vid);
             console.log(vi);
             $('#playlist').append(vi);
-            $('#page').html('//'+page);
+            $('#page').html(page);
             $('#'+vid).click(function(){
               $(location).attr('href',ply_url+'?vid='+v.url)
             })
@@ -66,6 +66,10 @@
           get_playlist(++page, page_size);
         });
 
+        $('#link_prev').click(function(ev){
+          ev.preventDefault();
+          get_playlist(--page, page_size);
+        });
       });
     </script>
   </head>
@@ -73,9 +77,17 @@
     <div class="container" style="padding: 40px;">
       <div id = "playlist">
       </div>
-      <div>
-        <a id="link_next" href="#">next</a>
-        <span id="page"/>
+      <div id = "nav">
+        <div class="row">
+          <div class="col">
+            <a id="link_prev" href="#">prev</a>
+          </div>
+          <div class="col">
+            <span id="page"/>
+          </div>
+          <div class="col">
+            <a id="link_next" href="#">next</a>
+          </div>
       </div>
     </div>
   </body>
